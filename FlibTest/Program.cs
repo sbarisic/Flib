@@ -10,18 +10,24 @@ namespace FlibTest {
 		static void Main(string[] args) {
 			Console.Title = "Flib Test";
 
-			Console.WriteLine("Font debugging");
-			{
-				string Strr = "Hello\tTabs!\n\tHello More tabs!";
+			Flib.Font F = new Flib.Font("FreeSans.ttf");
 
-				Flib.Font F = new Flib.Font("FreeSans.ttf");
-				Bitmap Map = F.RenderString(Strr, Color.Black, Color.White);
-				Map.Save("test.png", ImageFormat.Png);
-				Map.Dispose();
+			string Str = "Hello font world! \"Quote\", IJK, ijk g";
+			int W, H;
+			F.MeasureString(Str, out W, out H);
 
-				Console.WriteLine("Done");
-				return;
+			Bitmap Bmp = new Bitmap(W, H);
+			using (Graphics G = Graphics.FromImage(Bmp)) {
+				G.Clear(Color.Black);
+				F.Iterate(Str, (M, X, Y) => {
+					int x, y, w, h;
+					F.GetPack(M.Glyph, out x, out y, out w, out h);
+					G.DrawImage(F.FontAtlas, X, Y, new RectangleF(x, y, w, h), GraphicsUnit.Pixel);
+				});
 			}
+
+			Bmp.Save("test.png", ImageFormat.Png);
+			Console.WriteLine("Done {0}", F);
 		}
 	}
 }
