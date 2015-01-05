@@ -6,9 +6,11 @@ using SharpFont;
 
 namespace Flib {
 	public struct GlyphMetrics {
+		public char Glyph;
 		public int Kerning, Descent, AdvanceX, AdvanceY, Height, Width;
 
-		public GlyphMetrics(int Kerning, int Descent, int AdvanceX, int AdvanceY, int Height, int Width) {
+		public GlyphMetrics(char C, int Kerning, int Descent, int AdvanceX, int AdvanceY, int Height, int Width) {
+			Glyph = C;
 			this.Kerning = Kerning;
 			this.Descent = Descent;
 			this.AdvanceX = AdvanceX;
@@ -28,6 +30,17 @@ namespace Flib {
 			}
 		}
 
+		FTVector GetKerning(char Left, char Right, KerningMode M = KerningMode.Default) {
+			return F.GetKerning(F.GetCharIndex(Left), F.GetCharIndex(Right), M);
+		}
+
+		void LoadGlyph(char C) {
+			F.LoadGlyph(F.GetCharIndex(C), LoadFlags.Default, LoadTarget.Normal);
+		}
+
+		int SpaceWidth;
+
+		public int TabSize;
 		public string Family;
 		public float LineSpacing;
 		public int Size {
@@ -39,38 +52,24 @@ namespace Flib {
 			F = Library.NewFace(Path, 0);
 			F.SelectCharmap(Encoding.Unicode);
 			F.SetCharSize(Size << 6, Size << 6, 96, 96);
+
 			LineSpacing = 1.35f;
+			TabSize = 4;
 			this.Size = Size;
 
 			Family = F.FamilyName != null ? F.FamilyName : "";
-		}
 
-		public uint GetGlyphIndex(char C) {
-			return F.GetCharIndex(C);
-		}
-
-		public void MeasureChar(char C, out int W, out int H) {
-			uint Index = GetGlyphIndex(C);
-			F.LoadGlyph(Index, LoadFlags.Default, LoadTarget.Normal);
-			W = Glyph.Advance.X >> 6;
-			H = Glyph.Metrics.Height >> 6;
-		}
-
-		FTVector GetKerning(char Left, char Right, KerningMode M = KerningMode.Default) {
-			return F.GetKerning(GetGlyphIndex(Left), GetGlyphIndex(Right), M);
-		}
-
-		public void LoadGlyph(char C) {
-			F.LoadGlyph(GetGlyphIndex(C), LoadFlags.Default, LoadTarget.Normal);
+			SpaceWidth = GlyphMetrics(' ', null).AdvanceX;
 		}
 
 		public GlyphMetrics GlyphMetrics(char Current, char? Previous) {
 			LoadGlyph(Current);
 			int Descent = (Glyph.Metrics.Height >> 6) - (Glyph.Metrics.HorizontalBearingY >> 6);
 			int Kerning = Glyph.Metrics.HorizontalBearingX >> 6;
-			if (F.HasKerning && Previous.HasValue)
+
+			if (F.HasKerning && Previous.HasValue) 
 				Kerning += GetKerning(Previous.Value, Current).X >> 6;
-			return new GlyphMetrics(Kerning, Descent, Glyph.Advance.X >> 6, Glyph.Advance.Y >> 6,
+			return new GlyphMetrics(Current, Kerning, Descent, Glyph.Advance.X >> 6, Glyph.Advance.Y >> 6,
 				Glyph.Metrics.Height >> 6, Glyph.Metrics.Width >> 6);
 		}
 
@@ -90,16 +89,26 @@ namespace Flib {
 
 			for (int i = 0; i < Str.Length; i++) {
 				switch (Str[i]) {
+					case '\r':
+					case '\b':
+						continue;
+
+					case '\t':
+						X += SpaceWidth * TabSize;
+						continue;
+
 					case '\n':
 						X = 0;
 						Y += (int)(Size * LineSpacing);
 						continue;
-				}
 
-				M = GlyphMetrics(Str[i], (i > 0 ? (char?)Str[i - 1] : null));
-				A(M, X + GetRelativeX(M), Y + GetRelativeY(M));
-				X += M.AdvanceX;
-				Y += M.AdvanceY;
+					default:
+						M = GlyphMetrics(Str[i], (i > 0 ? (char?)Str[i - 1] : null));
+						A(M, X + GetRelativeX(M), Y + GetRelativeY(M));
+						X += M.AdvanceX;
+						Y += M.AdvanceY;
+						continue;
+				}
 			}
 		}
 

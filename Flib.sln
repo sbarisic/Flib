@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flib", "Flib\Flib.csproj", "{FB70BF5C-9221-4D13-8DDE-770941A48B95}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlibTest", "FlibTest\FlibTest.csproj", "{F729ECD4-68B3-41B3-9FF9-10B52335E6B8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -13,6 +15,10 @@ Global
 		{FB70BF5C-9221-4D13-8DDE-770941A48B95}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FB70BF5C-9221-4D13-8DDE-770941A48B95}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FB70BF5C-9221-4D13-8DDE-770941A48B95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F729ECD4-68B3-41B3-9FF9-10B52335E6B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F729ECD4-68B3-41B3-9FF9-10B52335E6B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F729ECD4-68B3-41B3-9FF9-10B52335E6B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F729ECD4-68B3-41B3-9FF9-10B52335E6B8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
