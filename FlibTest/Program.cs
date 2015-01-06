@@ -10,9 +10,9 @@ namespace FlibTest {
 		static void Main(string[] args) {
 			Console.Title = "Flib Test";
 
-			Flib.Font F = new Flib.Font("FreeSans.ttf");
+			Flib.Font F = new Flib.Font("FreeSans.ttf", 30, true);
 
-			string Str = "Hello font world! \"Quote\", IJK, ijk g";
+			/*string Str = "Hello font world! \"Quote\", IJK, ijk g";
 			int W, H;
 			F.MeasureString(Str, out W, out H);
 
@@ -24,10 +24,12 @@ namespace FlibTest {
 					F.GetPack(M.Glyph, out x, out y, out w, out h);
 					G.DrawImage(F.FontAtlas, X, Y, new RectangleF(x, y, w, h), GraphicsUnit.Pixel);
 				});
-			}
+			}*/
 
-			Bmp.Save("test.png", ImageFormat.Png);
-			Console.WriteLine("Done {0}", F);
+			//Bitmap Bmp = new Bitmap("s.png");
+			F.FontAtlas.Save("distance.png", ImageFormat.Png);
+			//Bmp.Save("test.png", ImageFormat.Png);
+			Console.WriteLine("Done");
 		}
 	}
 }

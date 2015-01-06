@@ -49,7 +49,7 @@ namespace Flib {
 				AddedChars.Add(Chr);
 
 				GlyphMetrics M = GlyphMetrics(Chr);
-				RP.Add(Chr, new Vec(M.Width, M.Height));
+				RP.Add(Chr, new Vec(M.Width + DFOffset * 2, M.Height + DFOffset * 2));
 			};
 
 			for (char c = (char)33; c < 127; c++)
@@ -63,19 +63,25 @@ namespace Flib {
 
 				foreach (char C in Pack.Keys) {
 					Rect R = Pack[C];
-
 					LoadGlyph(C);
 					Glyph.RenderGlyph(RenderMode.Normal);
+
 					if (Glyph.Bitmap.Width != 0)
 						G.DrawImageUnscaled(Glyph.Bitmap.ToGdipBitmap(Fore), (int)R.X, (int)R.Y);
 				}
 			}
+
+			if (DistanceField)
+				FontAtlas = Flib.DistanceField.Generate(FontAtlas, DFOffset);
 		}
 
 		int SpaceWidth;
 
 		public Bitmap FontAtlas;
 		Dictionary<char, Rect> Pack;
+
+		bool DistanceField;
+		int DFOffset;
 
 		public int TabSize;
 		public string Family;
@@ -85,10 +91,15 @@ namespace Flib {
 			private set;
 		}
 
-		public Font(string Path, int Size = 16) {
+		public Font(string Path, int Size = 16, bool DistanceField = false, int DFOffset = 5) {
 			F = Library.NewFace(Path, 0);
 			F.SelectCharmap(Encoding.Unicode);
 			F.SetCharSize(Size << 6, Size << 6, 96, 96);
+
+			if (!DistanceField)
+				DFOffset = 0;
+			this.DistanceField = DistanceField;
+			this.DFOffset = DFOffset;
 
 			LineSpacing = 1.35f;
 			TabSize = 4;
@@ -108,7 +119,7 @@ namespace Flib {
 			if (F.HasKerning && Previous.HasValue)
 				Kerning += GetKerning(Previous.Value, Current).X >> 6;
 			return new GlyphMetrics(Current, Kerning, Descent, Glyph.Advance.X >> 6, Glyph.Advance.Y >> 6,
-				Glyph.Metrics.Height >> 6, Glyph.Metrics.Width >> 6);
+				(Glyph.Metrics.Height >> 6), (Glyph.Metrics.Width >> 6));
 		}
 
 		public int GetRelativeX(GlyphMetrics M) {
@@ -154,8 +165,8 @@ namespace Flib {
 			X = Y = W = H = 0;
 			if (Pack.ContainsKey(C)) {
 				Rect R = Pack[C];
-				X = R.X;
-				Y = R.Y;
+				X = R.X - DFOffset;
+				Y = R.Y - DFOffset;
 				W = R.W;
 				H = R.H;
 				return true;
@@ -172,22 +183,6 @@ namespace Flib {
 			});
 			W = _W;
 			H = _H;
-		}
-
-		public Bitmap RenderString(string Txt, Color Fore, Color Back) {
-			int W = 0;
-			int H = 0;
-			MeasureString(Txt, out W, out H);
-			Bitmap Bmp = new Bitmap(W, H);
-			Graphics G = Graphics.FromImage(Bmp);
-			G.Clear(Back);
-			Iterate(Txt, (M, X, Y) => {
-				Glyph.RenderGlyph(RenderMode.Normal);
-				if (Glyph.Bitmap.Width != 0)
-					G.DrawImageUnscaled(Glyph.Bitmap.ToGdipBitmap(Fore), X, Y);
-			});
-			G.Dispose();
-			return Bmp;
 		}
 
 		public override string ToString() {
