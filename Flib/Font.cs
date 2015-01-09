@@ -8,9 +8,9 @@ using SharpFont;
 namespace Flib {
 	public struct GlyphMetrics {
 		public char Glyph;
-		public int Kerning, Descent, AdvanceX, AdvanceY, Height, Width;
+		public int Kerning, Descent, AdvanceX, AdvanceY, Height, Width, StringIdx;
 
-		public GlyphMetrics(char C, int Kerning, int Descent, int AdvanceX, int AdvanceY, int Height, int Width) {
+		public GlyphMetrics(char C, int Kerning, int Descent, int AdvanceX, int AdvanceY, int Height, int Width, int StringIdx) {
 			Glyph = C;
 			this.Kerning = Kerning;
 			this.Descent = Descent;
@@ -18,6 +18,7 @@ namespace Flib {
 			this.AdvanceY = AdvanceY;
 			this.Height = Height;
 			this.Width = Width;
+			this.StringIdx = StringIdx;
 		}
 	}
 
@@ -91,6 +92,8 @@ namespace Flib {
 			private set;
 		}
 
+		public object Userdata;
+
 		public Font(string Path, int Size = 16, bool DistanceField = false, int DFOffset = 5) {
 			F = Library.NewFace(Path, 0);
 			F.SelectCharmap(Encoding.Unicode);
@@ -109,6 +112,8 @@ namespace Flib {
 
 			SpaceWidth = GlyphMetrics(' ', null).AdvanceX;
 			BuildFontAtlas(Color.White, Color.Transparent);
+
+			Userdata = null;
 		}
 
 		public GlyphMetrics GlyphMetrics(char Current, char? Previous = null) {
@@ -119,7 +124,7 @@ namespace Flib {
 			if (F.HasKerning && Previous.HasValue)
 				Kerning += GetKerning(Previous.Value, Current).X >> 6;
 			return new GlyphMetrics(Current, Kerning, Descent, Glyph.Advance.X >> 6, Glyph.Advance.Y >> 6,
-				(Glyph.Metrics.Height >> 6), (Glyph.Metrics.Width >> 6));
+				(Glyph.Metrics.Height >> 6), (Glyph.Metrics.Width >> 6), 0);
 		}
 
 		public int GetRelativeX(GlyphMetrics M) {
@@ -153,6 +158,7 @@ namespace Flib {
 
 					default:
 						M = GlyphMetrics(Str[i], (i > 0 ? (char?)Str[i - 1] : null));
+						M.StringIdx = i;
 						A(M, X + GetRelativeX(M), Y + GetRelativeY(M));
 						X += M.AdvanceX;
 						Y += M.AdvanceY;
@@ -172,6 +178,20 @@ namespace Flib {
 				return true;
 			}
 			return false;
+		}
+
+		public bool GetPackUV(char C, out float U, out float V, out float W, out float H) {
+			int _U, _V, _W, _H;
+			if (!GetPack(C, out _U, out _V, out _W, out _H)) {
+				U = V = W = H = 0;
+				return false;
+			}
+
+			U = (float)_U / FontAtlas.Width;
+			V = (float)_V / FontAtlas.Height;
+			W = (float)_W / FontAtlas.Width;
+			H = (float)_H / FontAtlas.Height;
+			return true;
 		}
 
 		public void MeasureString(string S, out int W, out int H) {
