@@ -99,8 +99,6 @@ namespace Flib {
 			F.SelectCharmap(Encoding.Unicode);
 			F.SetCharSize(Size << 6, Size << 6, 96, 96);
 
-			if (!DistanceField)
-				DFOffset = 0;
 			this.DistanceField = DistanceField;
 			this.DFOffset = DFOffset;
 
@@ -171,10 +169,18 @@ namespace Flib {
 			X = Y = W = H = 0;
 			if (Pack.ContainsKey(C)) {
 				Rect R = Pack[C];
-				X = R.X - DFOffset;
-				Y = R.Y - DFOffset;
+				X = R.X;
+				Y = R.Y;
 				W = R.W;
 				H = R.H;
+
+				if (DistanceField) {
+					X -= DFOffset;
+					Y -= DFOffset;
+				} else {
+					W -= DFOffset * 2;
+					H -= DFOffset * 2;
+				}
 				return true;
 			}
 			return false;
