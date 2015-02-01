@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 using SharpFont;
 
 namespace Flib {
@@ -94,8 +95,8 @@ namespace Flib {
 
 		public object Userdata;
 
-		public Font(string Path, int Size = 16, bool DistanceField = false, int DFOffset = 5) {
-			F = Library.NewFace(Path, 0);
+		public Font(byte[] Face, int Size = 16, bool DistanceField = false, int DFOffset = 5) {
+			F = Library.NewMemoryFace(Face, 0);
 			F.SelectCharmap(Encoding.Unicode);
 			F.SetCharSize(Size << 6, Size << 6, 96, 96);
 
@@ -112,6 +113,10 @@ namespace Flib {
 			BuildFontAtlas(Color.White, Color.Transparent);
 
 			Userdata = null;
+		}
+
+		public Font(string Path, int Size = 16, bool DistanceField = false, int DFOffset = 5)
+			: this(File.ReadAllBytes(Path), Size, DistanceField, DFOffset) {
 		}
 
 		public GlyphMetrics GlyphMetrics(char Current, char? Previous = null) {
